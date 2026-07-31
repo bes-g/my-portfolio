@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Besufkad Tekalign — Portfolio</title>
+  <meta name="description" content="Portfolio of Besufkad Tekalign — Mechanical Engineering Student, Web Developer, Robotics & AI Enthusiast">
+  <link rel="stylesheet" href="style.css">
+  <!-- Three.js and GLTFLoader (non-module UMD builds) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 3D Canvas placed as background layer -->
+    <div id="three-canvas-wrap" aria-hidden="true">
+      <canvas id="three-canvas"></canvas>
+    </div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <div class="logo">Besufkad Tekalign</div>
+        <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+          <a href="#about">About</a>
+          <a href="#skills">Skills</a>
+          <a href="#experience">Experience</a>
+          <a href="#projects">Projects</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="greeting">Hello — I'm</p>
+            <h1 class="name">Besufkad Tekalign</h1>
+            <p class="headline">Mechanical Engineering Student | Web Developer | Robotics & AI Enthusiast</p>
+            <p class="bio">I bridge the gap between hardware and software: mechanical system design, robotics, industrial maintenance, and web development. Passionate about algorithmic problem solving and building interactive technical solutions.</p>
+            <div class="cta-row">
+              <a href="#contact" class="btn primary">Contact Me</a>
+              <a href="#projects" class="btn outline">View Projects</a>
+              <a href="Besufkad's CV .pdf" download="Besufkad_Tekalign_CV.pdf" class="download-btn">
+                📄 Besufkad's CV.pdf
+              </a>
+            </div>
+            <div class="badges">
+              <span class="badge">SOLIDWORKS</span>
+              <span class="badge">Three.js</span>
+              <span class="badge">Python</span>
+              <span class="badge">Cybersecurity</span>
+            </div>
+          </div>
+
+          <aside class="hero-aside">
+            <img src="profile.jpg/IMG_0904.JPG.jpg" alt="My profile picture" class="profile-pic">
+            <div class="robot-container">
+              <img src="robot.png" alt="Robot" class="robot-body">
+              <div class="eye left-eye"><div class="pupil" id="pupil1"></div></div>
+              <div class="eye right-eye"><div class="pupil" id="pupil2"></div></div>
+            </div>
+            <div class="card stats-card">
+              <h3>Highlights</h3>
+              <ul>
+                <li>Simien Mountains Plastic Recycling Initiative — Technical Lead</li>
+                <li>INSA — Development Trainee</li>
+                <li>Lufthansa Technik Innovaero 2026 Challenge — Participant</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="about" class="about">
+        <h2>About</h2>
+        <div class="about-grid">
+          <div class="about-left">
+            <h3>Bio & Education</h3>
+            <p>I am a Mechanical Engineering student at Addis Ababa University bridging the gap between hardware and software. My expertise spans mechanical system design, robotics, and industrial maintenance, combined with strong foundations in web development, Python programming, and cybersecurity.</p>
+
+            <div class="education">
+              <p><strong>Education:</strong> Mechanical Engineering — Addis Ababa University</p>
+              <p><strong>Training:</strong> Ethiopian Artificial Intelligence Institute; Udacity Global Chapters Ethiopia</p>
+            </div>
+          </div>
+
+          <div class="about-right">
+            <div class="ai-widget" id="ai-widget" aria-live="polite">
+              <div class="ai-header">
+                <div class="ai-title">AI Guide</div>
+                <div class="ai-sub">Ask a quick question about my resume</div>
+              </div>
+              <div class="ai-body" id="ai-body">
+                <div class="messages" id="ai-messages"></div>
+                <div class="ai-quick">
+                  <button class="quick-btn" data-q="Tell me about Besufkad">Tell me about Besufkad</button>
+                  <button class="quick-btn" data-q="What are your top skills?">What are your top skills?</button>
+                  <button class="quick-btn" data-q="What experience do you have?">What experience do you have?</button>
+                  <button class="quick-btn" data-q="What projects stand out?">What projects stand out?</button>
+                </div>
+                <form id="ai-form" class="ai-form" autocomplete="off">
+                  <input id="ai-input" type="text" placeholder="Type your question... (e.g., skills, experience)" />
+                  <button type="submit" class="send-btn">Send</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="skills" class="skills">
+        <h2>Skills</h2>
+        <div class="skills-grid">
+          <div class="skill-card">
+            <h4>Web & Software</h4>
+            <p>HTML · CSS · JavaScript · Python · Android basics</p>
+          </div>
+          <div class="skill-card">
+            <h4>Engineering & Hardware</h4>
+            <p>Mechanical System Design · SOLIDWORKS · Thermodynamics · Prototyping</p>
+          </div>
+          <div class="skill-card">
+            <h4>Robotics & AI</h4>
+            <p>Robotics fundamentals · AI & data fundamentals · Model prototyping</p>
+          </div>
+          <div class="skill-card">
+            <h4>Security</h4>
+            <p>Cybersecurity · CTF challenges · Secure-by-design thinking</p>
+          </div>
+        </div>
+
+        <div class="skills-marquee" aria-hidden="true">
+          <div class="marquee-track">
+            <span>HTML • CSS • JavaScript • Python • SOLIDWORKS • Robotics • AI • Cybersecurity • Thermodynamics • Prototyping •</span>
+            <span>HTML • CSS • JavaScript • Python • SOLIDWORKS • Robotics • AI • Cybersecurity • Thermodynamics • Prototyping •</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="experience" class="experience">
+        <h2>Experience</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="time">2024</div>
+            <div class="event">
+              <h4>Simien Mountains Plastic Recycling Initiative</h4>
+              <p>Technical Lead — machinery diagnostics and collaboration with Arizona State University.</p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="time">2024</div>
+            <div class="event">
+              <h4>INSA — Software Development Trainee</h4>
+              <p>Software development training and web development practice.</p>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="time">2024</div>
+            <div class="event">
+              <h4>Ethiopian Statistical Service</h4>
+              <p>Technical contributions during the 2024 Agricultural Census.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="projects">
+        <h2>Projects & Achievements</h2>
+        <div class="projects-grid">
+          <div class="project-card">
+            <h4>Lufthansa Technik Innovaero 2026 Challenge</h4>
+            <p>Submitted technical reporting and participated in the innovation competition.</p>
+          </div>
+          <div class="project-card">
+            <h4>The Udara Project</h4>
+            <p>Digital Certificate of Participation (July 2026).</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <h2>Contact</h2>
+        <div class="contact-grid">
+          <div class="contact-form-card">
+            <form id="contact-form">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" required placeholder="Your name" />
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" required placeholder="you@example.com" />
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="6" required placeholder="Write a short message"></textarea>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Send Message</button>
+                <button type="button" id="mailto-btn" class="btn outline">Open Email App</button>
+              </div>
+              <p id="contact-feedback" class="muted"></p>
+            </form>
+          </div>
+          <aside class="contact-links">
+            <h3>Connect</h3>
+            <p class="muted">Open to collaborations and opportunities.</p>
+            <p><strong>Email:</strong> <a href="mailto:besufkadtekalign@gamil.com">besufkadtekalign@gamil.com</a></p>
+            <p><strong>GitHub:</strong> <a href="https://github.com/bes-g" target="_blank" rel="noopener">github.com/bes-g</a></p>
+            <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/besufkad-tekalign" target="_blank" rel="noopener">linkedin.com/in/besufkad-tekalign</a></p>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <p>© <span id="year"></span> Besufkad Tekalign — Built with vanilla HTML/CSS/JS & Three.js</p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
