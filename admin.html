@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CV Admin — Besufkad Tekalign</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="admin-page">
+    <header class="site-header">
+      <nav class="nav">
+        <div class="logo">CV Admin</div>
+        <div class="nav-links">
+          <a href="index.html">Back to Portfolio</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="admin-panel">
+        <h1>Update Your CV</h1>
+        <p>Use this editor to keep your CV content fresh. Edit fields, save to the backend, and your portfolio will automatically display the latest data.</p>
+
+        <form id="admin-form" class="admin-form">
+          <div class="form-columns">
+            <div class="form-column">
+              <div class="form-section">
+                <h2>Basic Info</h2>
+                <label for="name">Name</label>
+                <input id="name" type="text" placeholder="Full name" />
+
+                <label for="headline">Headline</label>
+                <input id="headline" type="text" placeholder="Resume headline" />
+
+                <label for="summary">Summary</label>
+                <textarea id="summary" rows="4" placeholder="Short summary"></textarea>
+              </div>
+
+              <div class="form-section">
+                <h2>Contact</h2>
+                <label for="contact-email">Email</label>
+                <input id="contact-email" type="email" placeholder="email@example.com" />
+
+                <label for="contact-github">GitHub URL</label>
+                <input id="contact-github" type="text" placeholder="https://github.com/username" />
+
+                <label for="contact-linkedin">LinkedIn URL</label>
+                <input id="contact-linkedin" type="text" placeholder="https://www.linkedin.com/in/username" />
+              </div>
+
+              <div class="form-section">
+                <h2>Skills</h2>
+                <label for="skills-list">Skills (one per line)</label>
+                <textarea id="skills-list" rows="6" placeholder="HTML\nCSS\nJavaScript"></textarea>
+              </div>
+            </div>
+
+            <div class="form-column">
+              <div class="form-section">
+                <h2>Education</h2>
+                <div id="education-list" class="list-group"></div>
+                <button type="button" id="add-education" class="btn outline">Add Education</button>
+              </div>
+
+              <div class="form-section">
+                <h2>Training</h2>
+                <div id="training-list" class="list-group"></div>
+                <button type="button" id="add-training" class="btn outline">Add Training</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2>Experience</h2>
+            <div id="experience-list" class="list-group"></div>
+            <button type="button" id="add-experience" class="btn outline">Add Experience</button>
+          </div>
+
+          <div class="form-section">
+            <h2>Projects</h2>
+            <div id="projects-list" class="list-group"></div>
+            <button type="button" id="add-project" class="btn outline">Add Project</button>
+          </div>
+
+          <div class="form-section">
+            <h2>PDF Upload</h2>
+            <label for="cv-pdf">Upload new downloadable CV</label>
+            <input id="cv-pdf" type="file" accept="application/pdf" />
+            <div class="upload-row">
+              <button type="button" id="upload-pdf" class="btn outline">Upload CV</button>
+              <button type="button" id="delete-pdf" class="btn outline danger">Delete CV</button>
+            </div>
+            <p id="cv-status" class="upload-status muted">Checking CV upload status...</p>
+            <p class="secondary-note" id="cv-upload-note">Upload a new CV file and the download link on your portfolio page will update automatically.</p>
+          </div>
+
+          <div class="form-section">
+            <h2>Profile Picture</h2>
+            <label for="profile-pic">Upload new profile picture</label>
+            <input id="profile-pic" type="file" accept="image/jpeg,image/png,image/webp" />
+            <div class="upload-row">
+              <button type="button" id="upload-photo" class="btn outline">Upload Photo</button>
+              <button type="button" id="delete-photo" class="btn outline danger">Delete Photo</button>
+            </div>
+            <p id="photo-status" class="upload-status muted">Checking profile photo status...</p>
+            <p class="secondary-note" id="photo-upload-note">Upload a new photo and it will replace the picture shown on your portfolio page.</p>
+          </div>
+
+          <div class="form-section">
+            <h2>Change Admin Password</h2>
+            <label for="current-password">Current Password</label>
+            <input id="current-password" type="password" placeholder="Enter current password" />
+            <label for="new-password">New Password</label>
+            <input id="new-password" type="password" placeholder="Enter new password" />
+            <label for="confirm-password">Confirm New Password</label>
+            <input id="confirm-password" type="password" placeholder="Confirm new password" />
+            <button type="button" id="change-password" class="btn outline">Change Password</button>
+            <p class="secondary-note">After changing password, use the new password for future admin login.</p>
+          </div>
+
+          <div class="form-section">
+            <h2>Admin Access</h2>
+            <label for="admin-password">Admin Password</label>
+            <input id="admin-password" type="password" placeholder="Enter admin password" required />
+            <p class="secondary-note">Default password: <strong>portfolio-admin</strong>. Change it here and it will be saved to <code>admin-password.txt</code>.</p>
+          </div>
+
+          <div class="admin-actions">
+            <button type="submit" class="btn primary">Save CV</button>
+            <button type="button" id="load-cv" class="btn outline">Reload CV</button>
+          </div>
+
+          <p id="admin-feedback" class="feedback"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span id="year"></span> Besufkad Tekalign — Portfolio Backend Admin</p>
+    </footer>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "name": "levantosi",
+  "headline": "Mechanical Engineering Student | Web Developer | Robotics & AI Enthusiast",
+  "summary": "I am a Mechanical Engineering student at Addis Ababa University bridging the gap between hardware and software. My expertise spans mechanical system design, robotics, and industrial maintenance, combined with strong foundations in web development, Python programming, and cybersecurity.",
+  "education": [
+    {
+      "institution": "Addis Ababa University",
+      "degree": "Mechanical Engineering",
+      "years": "2023 – Present"
+    }
+  ],
+  "training": [
+    {
+      "title": "Ethiopian Artificial Intelligence Institute",
+      "description": "AI training and applied projects."
+    },
+    {
+      "title": "Udacity Global Chapters Ethiopia",
+      "description": "Programming and data structures coursework."
+    }
+  ],
+  "skills": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Python",
+    "Android Development Basics",
+    "SOLIDWORKS",
+    "Mechanical System Design",
+    "Thermodynamics",
+    "Prototyping",
+    "Robotics",
+    "AI Fundamentals",
+    "Cybersecurity"
+  ],
+  "experience": [
+    {
+      "year": "2024",
+      "title": "Simien Mountains Plastic Recycling Initiative",
+      "role": "Technical Lead",
+      "description": "Managed machinery diagnostics and collaborated with Arizona State University."
+    },
+    {
+      "year": "2024",
+      "title": "INSA — Software Development Trainee",
+      "role": "Development Trainee",
+      "description": "Built web-based solutions and practiced software development workflows."
+    },
+    {
+      "year": "2024",
+      "title": "Ethiopian Statistical Service",
+      "role": "Technical Contributor",
+      "description": "Supported technical operations during the 2024 Agricultural Census."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Lufthansa Technik Innovaero 2026 Challenge",
+      "description": "Submitted technical reporting and participated in the innovation competition."
+    },
+    {
+      "name": "The Udara Project",
+      "description": "Earned a digital Certificate of Participation in July 2026."
+    }
+  ],
+  "contact": {
+    "email": "besufkadtekalign@gamil.com",
+    "github": "https://github.com/bes-g",
+    "linkedin": "https://www.linkedin.com/in/besufkad-tekalign"
+  }
+}

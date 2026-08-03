@@ -6,6 +6,19 @@
   // Basic UI initialization
   document.getElementById('year').textContent = new Date().getFullYear();
 
+  // Cache-bust the resume PDF link so it never shows a stale cached copy
+  const cvDownloadLink = document.getElementById('cv-download-link');
+  const profilePic = document.querySelector('.profile-pic');
+  const profilePlaceholder = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><rect width="100%" height="100%" fill="#0b0c10"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#8da2b8" font-family="Inter,Arial,sans-serif" font-size="18">No Photo</text></svg>'
+  );
+
+  if (cvDownloadLink) {
+    cvDownloadLink.href = `resume.pdf?v=${Date.now()}`;
+  }
+
+  const apiBase = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+
   // ROBOT EYE TRACKING
   const pupils = document.querySelectorAll('.pupil');
 
@@ -51,7 +64,7 @@
   const mailtoBtn = document.getElementById('mailto-btn');
 
   if (contactForm && contactFeedback && mailtoBtn) {
-    contactForm.addEventListener('submit', (e) => {
+    contactForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       const name = form.name.value.trim();
@@ -62,21 +75,160 @@
         contactFeedback.style.color = 'salmon';
         return;
       }
+
       contactFeedback.textContent = 'Sending message...';
       contactFeedback.style.color = 'var(--muted)';
-      setTimeout(() => {
-        contactFeedback.textContent = 'Message sent (demo). You can also open your email app to send a real message.';
+
+      try {
+        const response = await fetch(`${apiBase}/api/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Unable to send message.');
+        }
+
+        contactFeedback.textContent = result.message || 'Message sent successfully.';
         contactFeedback.style.color = 'var(--accent)';
         form.reset();
-      }, 900);
+      } catch (err) {
+        contactFeedback.textContent = `Error sending message: ${err.message}`;
+        contactFeedback.style.color = 'salmon';
+      }
     });
 
     mailtoBtn.addEventListener('click', () => {
       const subject = encodeURIComponent('Contact from portfolio');
       const body = encodeURIComponent('Hello Besufkad,\n\nI saw your portfolio and would like to connect.\n\nRegards,');
-      window.location.href = `mailto:besufkadtekalign@gamil.com?subject=${subject}&body=${body}`;
+      const email = document.getElementById('contact-email')?.textContent || 'besufkadtekalign@gamil.com';
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     });
   }
+
+  async function renderCvData(cv) {
+    const heroHeadline = document.getElementById('hero-headline');
+    const heroBio = document.getElementById('hero-bio');
+    const aboutEducation = document.getElementById('about-education');
+    const aboutTraining = document.getElementById('about-training');
+    const skillsGrid = document.getElementById('skills-grid');
+    const experienceTimeline = document.getElementById('experience-timeline');
+    const projectsGrid = document.getElementById('projects-grid');
+    const contactEmail = document.getElementById('contact-email');
+    const contactGithub = document.getElementById('contact-github');
+    const contactLinkedIn = document.getElementById('contact-linkedin');
+
+    if (heroHeadline && cv.headline) heroHeadline.textContent = cv.headline;
+    if (heroBio && cv.summary) heroBio.textContent = cv.summary;
+
+    if (aboutEducation && Array.isArray(cv.education)) {
+      aboutEducation.innerHTML = cv.education.map(item => `
+        <p><strong>Education:</strong> ${item.degree} — ${item.institution}${item.years ? ` (${item.years})` : ''}</p>
+      `).join('');
+    }
+
+    if (aboutTraining && Array.isArray(cv.training)) {
+      aboutTraining.innerHTML = `<p><strong>Training:</strong> ${cv.training.map(item => item.title).join('; ')}</p>`;
+    }
+
+    if (skillsGrid && Array.isArray(cv.skills)) {
+      skillsGrid.innerHTML = cv.skills.map(skill => `
+        <div class="skill-card">
+          <h4>${skill}</h4>
+          <p>${skill}</p>
+        </div>
+      `).join('');
+    }
+
+    if (experienceTimeline && Array.isArray(cv.experience)) {
+      experienceTimeline.innerHTML = cv.experience.map(exp => `
+        <div class="timeline-item">
+          <div class="time">${exp.year || ''}</div>
+          <div class="event">
+            <h4>${exp.title}</h4>
+            <p>${exp.role ? exp.role + ' — ' : ''}${exp.description}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    if (projectsGrid && Array.isArray(cv.projects)) {
+      projectsGrid.innerHTML = cv.projects.map(project => `
+        <div class="project-card">
+          <h4>${project.name}</h4>
+          <p>${project.description}</p>
+        </div>
+      `).join('');
+    }
+
+    if (contactEmail && cv.contact?.email) {
+      contactEmail.textContent = cv.contact.email;
+      contactEmail.href = `mailto:${cv.contact.email}`;
+    }
+    if (contactGithub && cv.contact?.github) {
+      contactGithub.textContent = new URL(cv.contact.github).host + new URL(cv.contact.github).pathname;
+      contactGithub.href = cv.contact.github;
+    }
+    if (contactLinkedIn && cv.contact?.linkedin) {
+      contactLinkedIn.textContent = new URL(cv.contact.linkedin).host + new URL(cv.contact.linkedin).pathname;
+      contactLinkedIn.href = cv.contact.linkedin;
+    }
+  }
+
+  async function loadCvData() {
+    try {
+      const response = await fetch(`${apiBase}/api/cv`);
+      if (!response.ok) {
+        throw new Error('Failed to load CV data');
+      }
+      const cv = await response.json();
+      renderCvData(cv);
+    } catch (error) {
+      console.warn('CV API load error:', error);
+    }
+  }
+
+  async function refreshFileStatus() {
+    const cvDownloadLink = document.getElementById('cv-download-link');
+    const profilePic = document.querySelector('.profile-pic');
+    try {
+      const response = await fetch(`${apiBase}/api/uploads/status`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch upload status');
+      }
+      const status = await response.json();
+
+      if (cvDownloadLink) {
+        if (status.cvUploaded) {
+          cvDownloadLink.href = `resume.pdf?v=${Date.now()}`;
+          cvDownloadLink.classList.remove('disabled');
+          cvDownloadLink.textContent = '📄 Besufkad\'s CV.pdf';
+        } else {
+          cvDownloadLink.removeAttribute('href');
+          cvDownloadLink.classList.add('disabled');
+          cvDownloadLink.textContent = 'CV not uploaded yet';
+        }
+      }
+
+      if (profilePic) {
+        if (status.profileUploaded) {
+          profilePic.src = `profile.jpg?v=${Date.now()}`;
+          profilePic.alt = 'My profile picture';
+          profilePic.classList.remove('missing');
+        } else {
+          profilePic.src = profilePlaceholder;
+          profilePic.alt = 'No profile photo uploaded yet';
+          profilePic.classList.add('missing');
+        }
+      }
+    } catch (error) {
+      console.warn('Upload status load error:', error);
+    }
+  }
+
+  loadCvData();
+  refreshFileStatus();
 
   // RAG CHATBOT - Knowledge Base & Retrieval System
   const aiMessages = document.getElementById('ai-messages');
@@ -170,7 +322,6 @@
 
       // Check skills
       if (lowerQuery.includes('skill') || lowerQuery.includes('expertise') || lowerQuery.includes('know')) {
-        const allSkills = [...knowledgeBase.skills.web, ...knowledgeBase.skills.engineering, ...knowledgeBase.skills.emerging];
         const webSkillsStr = knowledgeBase.skills.web.join(', ');
         const engSkillsStr = knowledgeBase.skills.engineering.join(', ');
         const emergingSkillsStr = knowledgeBase.skills.emerging.join(', ');
@@ -198,7 +349,7 @@
       }
 
       // Check specific keywords
-      knowledgeBase.experience.forEach((exp, idx) => {
+      knowledgeBase.experience.forEach((exp) => {
         const expText = `${exp.title} ${exp.description}`;
         const score = calculateRelevance(query, expText);
         if (score > 0) {
@@ -219,7 +370,6 @@
     function generateResponse(query, retrievedInfo) {
       const lowerQuery = query.toLowerCase();
       
-      // Specific patterns
       if (lowerQuery.includes('hello') || lowerQuery.includes('hi')) {
         return `Hello! I'm an AI assistant for Besufkad's portfolio. I can tell you about ${knowledgeBase.personal.name}'s skills, experience, projects, and background. What would you like to know?`;
       }
@@ -228,7 +378,6 @@
         return "I don't have specific information about that. You can ask me about my skills, experience, projects, education, or background. What interests you?";
       }
 
-      // Build response from retrieved information
       let response = "";
       
       if (lowerQuery.includes('who') || lowerQuery.includes('about')) {
@@ -271,7 +420,6 @@
       }, 500 + Math.min(800, reply.length * 10));
     }
 
-    // Event Listeners
     aiForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const text = aiInput.value.trim();

@@ -1,0 +1,53 @@
+To run the portfolio backend:
+
+1. Install Node dependencies:
+   npm.cmd install
+
+2. Start the server:
+   npm.cmd start
+   or
+   npm.cmd run dev
+   or use the helper:
+   run-server.bat
+
+   If port 3000 is already in use, the server will try the next free port (3001, 3002, ...).
+   Check the terminal for the exact URL printed by the server.
+
+3. Open app in browser:
+   http://localhost:3000/index.html
+   or the URL shown in the terminal if the port changed.
+
+4. Open admin editor:
+   http://localhost:3000/admin-login.html
+   or the same host and port shown by the server.
+
+PowerShell note:
+- If `npm` fails with a script execution policy error, use `npm.cmd` instead of `npm`.
+- Example: `npm.cmd run dev`.
+
+Admin password:
+   portfolio-admin
+
+Custom password option:
+- Create a file called `admin-password.txt` in the project root.
+- Put your password on the first line.
+- Restart the server after saving the file.
+
+Notes:
+- The backend reads/writes CV data from cv.json.
+- The front-end loads CV data from GET /api/cv.
+- Use admin-login.html to authenticate, then access admin.html to edit CV content and upload a new PDF.
+- To change the admin password, set the environment variable ADMIN_PASSWORD before starting the server.
+
+PowerShell note:
+- If `npm` fails with a script execution policy error, use `npm.cmd` instead of `npm`.
+- Example: `npm.cmd run dev`.
+
+Admin password:
+   portfolio-admin
+
+Notes:
+- The backend reads/writes CV data from cv.json.
+- The front-end loads CV data from GET /api/cv.
+- Use admin.html to update CV JSON and save changes.
+- To change the admin password, set the environment variable ADMIN_PASSWORD before starting the server.
