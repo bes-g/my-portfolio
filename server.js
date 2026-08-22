@@ -122,14 +122,24 @@ app.use(express.static(path.join(__dirname, '/')));
 app.get('/api/cv', async (req, res) => {
   try {
     const result = await pool.query('SELECT data FROM cv WHERE id = 1');
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'No CV data found.' });
+    if (result.rows.length > 0 && result.rows[0].data) {
+      return res.json(result.rows[0].data);
     }
-    res.json(result.rows[0].data);
   } catch (err) {
-    console.error('Error reading CV from database:', err);
-    res.status(500).json({ error: 'Unable to read CV data.' });
+    console.error('Error reading CV from database, falling back to cv.json:', err.message);
   }
+
+  try {
+    const cvPath = path.join(__dirname, 'cv.json');
+    if (fs.existsSync(cvPath)) {
+      const data = JSON.parse(fs.readFileSync(cvPath, 'utf8'));
+      return res.json(data);
+    }
+  } catch (fsErr) {
+    console.error('Error reading cv.json:', fsErr.message);
+  }
+
+  res.status(404).json({ error: 'No CV data found.' });
 });
 
 app.post('/api/cv', async (req, res) => {
@@ -142,6 +152,7 @@ app.post('/api/cv', async (req, res) => {
     return res.status(400).json({ error: 'Invalid CV payload.' });
   }
 
+  let dbSaved = false;
   try {
     await pool.query(
       `INSERT INTO cv (id, data, updated_at)
@@ -149,10 +160,22 @@ app.post('/api/cv', async (req, res) => {
        ON CONFLICT (id) DO UPDATE SET data = $1, updated_at = NOW()`,
       [JSON.stringify(cv)]
     );
-    res.json({ success: true });
+    dbSaved = true;
   } catch (err) {
-    console.error('Error saving CV to database:', err);
-    res.status(500).json({ error: 'Unable to save CV data.' });
+    console.error('Error saving CV to database:', err.message);
+  }
+
+  try {
+    const cvPath = path.join(__dirname, 'cv.json');
+    fs.writeFileSync(cvPath, JSON.stringify(cv, null, 2), 'utf8');
+  } catch (fsErr) {
+    console.warn('Could not write cv.json backup:', fsErr.message);
+  }
+
+  if (dbSaved) {
+    return res.json({ success: true });
+  } else {
+    return res.json({ success: true, warning: 'Saved locally; database sync failed.' });
   }
 });
 

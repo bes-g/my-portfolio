@@ -6,7 +6,7 @@
   // Basic UI initialization
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Cache-bust the resume PDF link so it never shows a stale cached copy
+  const themeToggle = document.getElementById('theme-toggle');
   const cvDownloadLink = document.getElementById('cv-download-link');
   const profilePic = document.querySelector('.profile-pic');
   const profilePlaceholder = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
@@ -18,6 +18,27 @@
   }
 
   const apiBase = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    if (themeToggle) themeToggle.textContent = theme === 'light' ? '🌙' : '☀️';
+    localStorage.setItem('theme', theme);
+  }
+
+  function getSavedTheme() {
+    return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+
+  function toggleTheme() {
+    const nextTheme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+
+  setTheme(getSavedTheme());
 
   // ROBOT EYE TRACKING
   const pupils = document.querySelectorAll('.pupil');
@@ -107,6 +128,68 @@
     });
   }
 
+  function formatContactUrl(platform, value) {
+    if (!value) return '#';
+    const val = String(value).trim();
+    const plat = String(platform || '').toLowerCase().trim();
+
+    if (plat === 'email' || (val.includes('@') && !val.includes('/') && !val.startsWith('http'))) {
+      return val.startsWith('mailto:') ? val : `mailto:${val}`;
+    }
+
+    if (plat === 'phone' || plat === 'tel' || plat === 'mobile') {
+      return val.startsWith('tel:') ? val : `tel:${val}`;
+    }
+
+    if (plat === 'telegram' || plat === 'tg') {
+      if (val.startsWith('http://') || val.startsWith('https://')) return val;
+      if (val.startsWith('t.me/')) return `https://${val}`;
+      if (val.startsWith('@')) return `https://t.me/${val.substring(1)}`;
+      return `https://t.me/${val}`;
+    }
+
+    if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('mailto:') || val.startsWith('tel:')) {
+      return val;
+    }
+
+    return `https://${val}`;
+  }
+
+  function formatContactLabel(platform, value, label) {
+    if (label && String(label).trim()) {
+      return String(label).trim();
+    }
+    const val = String(value || '').trim();
+    const plat = String(platform || '').toLowerCase().trim();
+
+    if (plat === 'email' || val.startsWith('mailto:')) {
+      return val.replace(/^mailto:/i, '');
+    }
+
+    if (plat === 'phone' || val.startsWith('tel:')) {
+      return val.replace(/^tel:/i, '');
+    }
+
+    if (plat === 'telegram' || plat === 'tg') {
+      if (val.startsWith('@')) return val;
+      if (val.startsWith('https://t.me/')) return '@' + val.replace('https://t.me/', '');
+      if (val.startsWith('http://t.me/')) return '@' + val.replace('http://t.me/', '');
+      if (val.startsWith('t.me/')) return '@' + val.replace('t.me/', '');
+      return '@' + val;
+    }
+
+    try {
+      if (val.startsWith('http://') || val.startsWith('https://')) {
+        const u = new URL(val);
+        return (u.host + u.pathname).replace(/\/$/, '');
+      }
+    } catch (e) {}
+
+    return val;
+  }
+
+  let globalContacts = [];
+
   async function renderCvData(cv) {
     const heroHeadline = document.getElementById('hero-headline');
     const heroBio = document.getElementById('hero-bio');
@@ -115,9 +198,7 @@
     const skillsGrid = document.getElementById('skills-grid');
     const experienceTimeline = document.getElementById('experience-timeline');
     const projectsGrid = document.getElementById('projects-grid');
-    const contactEmail = document.getElementById('contact-email');
-    const contactGithub = document.getElementById('contact-github');
-    const contactLinkedIn = document.getElementById('contact-linkedin');
+    const contactLinksList = document.getElementById('contact-links-list');
 
     if (heroHeadline && cv.headline) heroHeadline.textContent = cv.headline;
     if (heroBio && cv.summary) heroBio.textContent = cv.summary;
@@ -162,17 +243,47 @@
       `).join('');
     }
 
-    if (contactEmail && cv.contact?.email) {
-      contactEmail.textContent = cv.contact.email;
-      contactEmail.href = `mailto:${cv.contact.email}`;
+    let contactsToRender = [];
+    if (Array.isArray(cv.contacts) && cv.contacts.length) {
+      contactsToRender = cv.contacts;
+    } else if (Array.isArray(cv.contact) && cv.contact.length) {
+      contactsToRender = cv.contact;
+    } else if (cv.contact && typeof cv.contact === 'object') {
+      if (Array.isArray(cv.contact.list) && cv.contact.list.length) {
+        contactsToRender = cv.contact.list;
+      } else {
+        Object.keys(cv.contact).forEach(key => {
+          if (key === 'list') return;
+          const val = cv.contact[key];
+          if (val && typeof val === 'string') {
+            const platformName = key.toLowerCase() === 'github' ? 'GitHub' :
+                                 key.toLowerCase() === 'linkedin' ? 'LinkedIn' :
+                                 key.toLowerCase() === 'telegram' ? 'Telegram' :
+                                 key.charAt(0).toUpperCase() + key.slice(1);
+            contactsToRender.push({
+              platform: platformName,
+              value: val,
+              label: ''
+            });
+          }
+        });
+      }
     }
-    if (contactGithub && cv.contact?.github) {
-      contactGithub.textContent = new URL(cv.contact.github).host + new URL(cv.contact.github).pathname;
-      contactGithub.href = cv.contact.github;
-    }
-    if (contactLinkedIn && cv.contact?.linkedin) {
-      contactLinkedIn.textContent = new URL(cv.contact.linkedin).host + new URL(cv.contact.linkedin).pathname;
-      contactLinkedIn.href = cv.contact.linkedin;
+
+    globalContacts = contactsToRender;
+
+    if (contactLinksList && contactsToRender.length > 0) {
+      contactLinksList.innerHTML = contactsToRender.map(c => {
+        const platform = c.platform || 'Contact';
+        const rawValue = c.value || c.url || '';
+        const url = formatContactUrl(platform, rawValue);
+        const display = formatContactLabel(platform, rawValue, c.label);
+        const isExternal = url.startsWith('http://') || url.startsWith('https://');
+        const targetAttr = isExternal ? ' target="_blank" rel="noopener"' : '';
+        const idAttr = platform.toLowerCase() === 'email' ? ' id="contact-email"' : '';
+
+        return `<p><strong>${platform}:</strong> <a${idAttr} href="${url}"${targetAttr}>${display}</a></p>`;
+      }).join('');
     }
   }
 
@@ -339,6 +450,18 @@
         });
       }
 
+      // Check contact
+      if (lowerQuery.includes('contact') || lowerQuery.includes('email') || lowerQuery.includes('telegram') || lowerQuery.includes('github') || lowerQuery.includes('linkedin') || lowerQuery.includes('reach') || lowerQuery.includes('connect') || lowerQuery.includes('message')) {
+        const contacts = globalContacts.length ? globalContacts : [
+          { platform: "Email", value: knowledgeBase.contact.email },
+          { platform: "GitHub", value: knowledgeBase.contact.github },
+          { platform: "LinkedIn", value: knowledgeBase.contact.linkedin }
+        ];
+        const contactStr = contacts.map(c => `• ${c.platform}: ${c.value}`).join('\n');
+        relevantInfo.push(contactStr);
+        relevanceScores.push(calculateRelevance(query, contactStr) + 1.5);
+      }
+
       // Check projects
       if (lowerQuery.includes('project') || lowerQuery.includes('build') || lowerQuery.includes('achievement')) {
         knowledgeBase.projects.forEach(proj => {
@@ -380,7 +503,9 @@
 
       let response = "";
       
-      if (lowerQuery.includes('who') || lowerQuery.includes('about')) {
+      if (lowerQuery.includes('contact') || lowerQuery.includes('email') || lowerQuery.includes('telegram') || lowerQuery.includes('reach')) {
+        response = `You can connect through these channels:\n${retrievedInfo[0]}`;
+      } else if (lowerQuery.includes('who') || lowerQuery.includes('about')) {
         response = `${retrievedInfo[0]}`;
       } else if (lowerQuery.includes('skill') || lowerQuery.includes('expertise')) {
         response = `Here's what I'm skilled at:\n${retrievedInfo[0]}`;

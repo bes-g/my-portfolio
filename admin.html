@@ -11,8 +11,11 @@
     <header class="site-header">
       <nav class="nav">
         <div class="logo">CV Admin</div>
-        <div class="nav-links">
-          <a href="index.html">Back to Portfolio</a>
+        <div class="nav-actions">
+          <div class="nav-links">
+            <a href="index.html">Back to Portfolio</a>
+          </div>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
         </div>
       </nav>
     </header>
@@ -38,15 +41,10 @@
               </div>
 
               <div class="form-section">
-                <h2>Contact</h2>
-                <label for="contact-email">Email</label>
-                <input id="contact-email" type="email" placeholder="email@example.com" />
-
-                <label for="contact-github">GitHub URL</label>
-                <input id="contact-github" type="text" placeholder="https://github.com/username" />
-
-                <label for="contact-linkedin">LinkedIn URL</label>
-                <input id="contact-linkedin" type="text" placeholder="https://www.linkedin.com/in/username" />
+                <h2>Contact & Social Links</h2>
+                <p class="secondary-note" style="margin-top: 0; margin-bottom: 14px;">Add your Email, Telegram, GitHub, LinkedIn, or any other social/contact channels.</p>
+                <div id="contact-list" class="list-group"></div>
+                <button type="button" id="add-contact" class="btn outline">Add Contact Link</button>
               </div>
 
               <div class="form-section">

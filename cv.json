@@ -63,9 +63,43 @@
       "description": "Earned a digital Certificate of Participation in July 2026."
     }
   ],
+  "contacts": [
+    {
+      "platform": "Email",
+      "value": "besufkadtekalign@gamil.com",
+      "label": ""
+    },
+    {
+      "platform": "GitHub",
+      "value": "https://github.com/bes-g",
+      "label": ""
+    },
+    {
+      "platform": "LinkedIn",
+      "value": "https://www.linkedin.com/in/besufkad-tekalign",
+      "label": ""
+    }
+  ],
   "contact": {
     "email": "besufkadtekalign@gamil.com",
     "github": "https://github.com/bes-g",
-    "linkedin": "https://www.linkedin.com/in/besufkad-tekalign"
+    "linkedin": "https://www.linkedin.com/in/besufkad-tekalign",
+    "list": [
+      {
+        "platform": "Email",
+        "value": "besufkadtekalign@gamil.com",
+        "label": ""
+      },
+      {
+        "platform": "GitHub",
+        "value": "https://github.com/bes-g",
+        "label": ""
+      },
+      {
+        "platform": "LinkedIn",
+        "value": "https://www.linkedin.com/in/besufkad-tekalign",
+        "label": ""
+      }
+    ]
   }
 }

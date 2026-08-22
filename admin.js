@@ -1,5 +1,6 @@
 (() => {
   const yearEl = document.getElementById('year');
+  const themeToggle = document.getElementById('theme-toggle');
   const form = document.getElementById('admin-form');
   const feedback = document.getElementById('admin-feedback');
   const passwordInput = document.getElementById('admin-password');
@@ -8,16 +9,15 @@
   const nameInput = document.getElementById('name');
   const headlineInput = document.getElementById('headline');
   const summaryInput = document.getElementById('summary');
-  const contactEmailInput = document.getElementById('contact-email');
-  const contactGithubInput = document.getElementById('contact-github');
-  const contactLinkedInInput = document.getElementById('contact-linkedin');
   const skillsInput = document.getElementById('skills-list');
 
+  const contactList = document.getElementById('contact-list');
   const educationList = document.getElementById('education-list');
   const trainingList = document.getElementById('training-list');
   const experienceList = document.getElementById('experience-list');
   const projectsList = document.getElementById('projects-list');
 
+  const addContactButton = document.getElementById('add-contact');
   const addEducationButton = document.getElementById('add-education');
   const addTrainingButton = document.getElementById('add-training');
   const addExperienceButton = document.getElementById('add-experience');
@@ -38,6 +38,27 @@
   }
 
   const apiBase = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    if (themeToggle) themeToggle.textContent = theme === 'light' ? '🌙' : '☀️';
+    localStorage.setItem('theme', theme);
+  }
+
+  function getSavedTheme() {
+    return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+
+  function toggleTheme() {
+    const nextTheme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+
+  setTheme(getSavedTheme());
 
   function createInput(labelText, className, placeholder = '', value = '') {
     const wrapper = document.createElement('div');
@@ -91,6 +112,16 @@
     return card;
   }
 
+  function addContactEntry(data = {}) {
+    const card = createEntryCard([
+      createInput('Platform / Account Type', 'contact-platform', 'e.g. Telegram, Email, GitHub, LinkedIn, Phone, X/Twitter', data.platform || ''),
+      createInput('URL, Username, or Handle', 'contact-value', 'e.g. https://t.me/yourusername, username@example.com, https://github.com/...', data.value || data.url || ''),
+      createInput('Display Text (Optional)', 'contact-label', 'e.g. @username or t.me/username (optional)', data.label || '')
+    ]);
+    card.classList.add('contact-entry');
+    contactList.appendChild(card);
+  }
+
   function addEducationEntry(data = {}) {
     const card = createEntryCard([
       createInput('Institution', 'institution', 'University or school', data.institution),
@@ -131,6 +162,7 @@
   }
 
   function clearList(list) {
+    if (!list) return;
     while (list.firstChild) {
       list.removeChild(list.firstChild);
     }
@@ -161,15 +193,46 @@
       nameInput.value = cv.name || '';
       headlineInput.value = cv.headline || '';
       summaryInput.value = cv.summary || '';
-      contactEmailInput.value = cv.contact?.email || '';
-      contactGithubInput.value = cv.contact?.github || '';
-      contactLinkedInInput.value = cv.contact?.linkedin || '';
       skillsInput.value = Array.isArray(cv.skills) ? cv.skills.join('\n') : '';
 
+      clearList(contactList);
       clearList(educationList);
       clearList(trainingList);
       clearList(experienceList);
       clearList(projectsList);
+
+      let loadedContacts = [];
+      if (Array.isArray(cv.contacts) && cv.contacts.length) {
+        loadedContacts = cv.contacts;
+      } else if (Array.isArray(cv.contact) && cv.contact.length) {
+        loadedContacts = cv.contact;
+      } else if (cv.contact && typeof cv.contact === 'object') {
+        if (Array.isArray(cv.contact.list) && cv.contact.list.length) {
+          loadedContacts = cv.contact.list;
+        } else {
+          Object.keys(cv.contact).forEach(key => {
+            if (key === 'list') return;
+            const val = cv.contact[key];
+            if (val && typeof val === 'string') {
+              const platformName = key.toLowerCase() === 'github' ? 'GitHub' :
+                                   key.toLowerCase() === 'linkedin' ? 'LinkedIn' :
+                                   key.toLowerCase() === 'telegram' ? 'Telegram' :
+                                   key.charAt(0).toUpperCase() + key.slice(1);
+              loadedContacts.push({
+                platform: platformName,
+                value: val,
+                label: ''
+              });
+            }
+          });
+        }
+      }
+
+      if (loadedContacts.length > 0) {
+        loadedContacts.forEach(item => addContactEntry(item));
+      } else {
+        addContactEntry({ platform: 'Email', value: '' });
+      }
 
       if (Array.isArray(cv.education) && cv.education.length) {
         cv.education.forEach(item => addEducationEntry(item));
@@ -204,6 +267,25 @@
   }
 
   function getFormData() {
+    const contactsList = collectEntries('.contact-entry', {
+      platform: 'contact-platform',
+      value: 'contact-value',
+      label: 'contact-label'
+    });
+
+    const contactObj = {
+      list: contactsList
+    };
+
+    contactsList.forEach(c => {
+      const p = (c.platform || '').trim().toLowerCase();
+      if (p === 'email' && !contactObj.email) contactObj.email = c.value;
+      if (p === 'github' && !contactObj.github) contactObj.github = c.value;
+      if (p === 'linkedin' && !contactObj.linkedin) contactObj.linkedin = c.value;
+      if (p === 'telegram' && !contactObj.telegram) contactObj.telegram = c.value;
+      if (p && !contactObj[p]) contactObj[p] = c.value;
+    });
+
     return {
       name: nameInput.value.trim(),
       headline: headlineInput.value.trim(),
@@ -213,11 +295,8 @@
       skills: skillsInput.value.split('\n').map(item => item.trim()).filter(Boolean),
       experience: collectEntries('.experience-entry', { year: 'year', title: 'title', role: 'role', description: 'description' }),
       projects: collectEntries('.project-entry', { name: 'name', description: 'description' }),
-      contact: {
-        email: contactEmailInput.value.trim(),
-        github: contactGithubInput.value.trim(),
-        linkedin: contactLinkedInInput.value.trim()
-      }
+      contact: contactObj,
+      contacts: contactsList
     };
   }
 
@@ -264,6 +343,7 @@
     loadButton.addEventListener('click', loadCv);
   }
 
+  if (addContactButton) addContactButton.addEventListener('click', () => addContactEntry());
   if (addEducationButton) addEducationButton.addEventListener('click', () => addEducationEntry());
   if (addTrainingButton) addTrainingButton.addEventListener('click', () => addTrainingEntry());
   if (addExperienceButton) addExperienceButton.addEventListener('click', () => addExperienceEntry());
