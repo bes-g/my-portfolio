@@ -31,21 +31,28 @@ const app = express();
 const DEFAULT_PORT = Number(process.env.PORT) || 3000;
 
 // ---------- Postgres connection ----------
-const pool = new Pool({
-  host: process.env.PGHOST || 'localhost',
-  port: Number(process.env.PGPORT) || 5432,
-  database: process.env.PGDATABASE || 'portfolio_db',
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'April_7b'
-});
+const dbConfig = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+    }
+  : {
+      host: process.env.PGHOST || 'localhost',
+      port: Number(process.env.PGPORT) || 5432,
+      database: process.env.PGDATABASE || 'portfolio_db',
+      user: process.env.PGUSER || 'postgres',
+      password: process.env.PGPASSWORD || 'April_7b'
+    };
+
+const pool = new Pool(dbConfig);
 
 pool.connect()
   .then(client => {
-    console.log('Connected to PostgreSQL (portfolio_db)');
+    console.log('Connected to PostgreSQL database');
     client.release();
   })
   .catch(err => {
-    console.error('Failed to connect to PostgreSQL:', err.message);
+    console.warn('PostgreSQL not connected, running with local cv.json fallback:', err.message);
   });
 
 // ---------- Admin password (still file-based, unchanged) ----------
