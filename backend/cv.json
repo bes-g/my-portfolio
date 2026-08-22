@@ -1,7 +1,7 @@
 {
   "name": "Besufkad Tekalign",
-  "headline": "Mechanical Engineering Student | Web Developer | Robotics & AI Enthusiast",
-  "summary": "I am a Mechanical Engineering student at Addis Ababa University bridging the gap between hardware and software. My expertise spans mechanical system design, robotics, and industrial maintenance, combined with strong foundations in web development, Python programming, and cybersecurity.",
+  "headline": "Software & Web Developer | Mechanical Engineering Student | Robotics & AI Enthusiast",
+  "summary": "Developer building web and software applications using full-stack tools, with an emphasis on writing secure, reliable code. My background in Mechanical Engineering (Addis Ababa University) — including robotics and industrial systems — gives me a practical edge when building software that interacts with real-world hardware",
   "education": [
     {
       "institution": "Addis Ababa University",
@@ -61,33 +61,17 @@
     {
       "name": "The Udara Project",
       "description": "Earned a digital Certificate of Participation in July 2026."
-    }
-  ],
-  "contacts": [
-    {
-      "platform": "Email",
-      "value": "besufkadtekalign@gamil.com",
-      "label": ""
     },
     {
-      "platform": "GitHub",
-      "value": "https://github.com/bes-g",
-      "label": ""
-    },
-    {
-      "platform": "LinkedIn",
-      "value": "https://www.linkedin.com/in/besufkad-tekalign",
-      "label": ""
+      "name": "INSA Summer Camp — Software Development Track",
+      "description": "Trained in full-stack software development at INSA (Information Network Security Administration), building an e-commerce platform and a School Guardian safety monitoring system — both as website and application."
     }
   ],
   "contact": {
-    "email": "besufkadtekalign@gamil.com",
-    "github": "https://github.com/bes-g",
-    "linkedin": "https://www.linkedin.com/in/besufkad-tekalign",
     "list": [
       {
         "platform": "Email",
-        "value": "besufkadtekalign@gamil.com",
+        "value": "besufkadtekalign@gmail.com",
         "label": ""
       },
       {
@@ -100,6 +84,26 @@
         "value": "https://www.linkedin.com/in/besufkad-tekalign",
         "label": ""
       }
-    ]
-  }
+    ],
+    "email": "besufkadtekalign@gmail.com",
+    "github": "https://github.com/bes-g",
+    "linkedin": "https://www.linkedin.com/in/besufkad-tekalign"
+  },
+  "contacts": [
+    {
+      "platform": "Email",
+      "value": "besufkadtekalign@gmail.com",
+      "label": ""
+    },
+    {
+      "platform": "GitHub",
+      "value": "https://github.com/bes-g",
+      "label": ""
+    },
+    {
+      "platform": "LinkedIn",
+      "value": "https://www.linkedin.com/in/besufkad-tekalign",
+      "label": ""
+    }
+  ]
 }

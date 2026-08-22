@@ -5,6 +5,28 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const { Pool } = require('pg');
 
+// ---------- Load .env if present ----------
+const rootEnvPath = path.join(__dirname, '../.env');
+const backendEnvPath = path.join(__dirname, '.env');
+[rootEnvPath, backendEnvPath].forEach(envFile => {
+  if (fs.existsSync(envFile)) {
+    try {
+      const lines = fs.readFileSync(envFile, 'utf8').split('\n');
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const idx = trimmed.indexOf('=');
+          const key = trimmed.slice(0, idx).trim();
+          const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+          if (key && !process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      });
+    } catch (e) {}
+  }
+});
+
 const app = express();
 const DEFAULT_PORT = Number(process.env.PORT) || 3000;
 
@@ -34,7 +56,9 @@ function getCurrentAdminPassword() {
   try {
     if (fs.existsSync(adminPasswordPath)) {
       const password = fs.readFileSync(adminPasswordPath, 'utf8').trim();
-      if (password) return password;
+      if (password) {
+        return password;
+      }
     }
   } catch (err) {}
 
@@ -59,22 +83,41 @@ function isAdminPasswordValid(password) {
   return password === getCurrentAdminPassword();
 }
 
-const contactRecipient = process.env.CONTACT_RECIPIENT_EMAIL || 'besufkadtekalign@gamil.com';
-const smtpConfig = {
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-};
+function getSmtpConfig() {
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT) || 465;
 
-function hasSmtpConfig() {
-  return Boolean(smtpConfig.host && smtpConfig.auth.user && smtpConfig.auth.pass);
+  if (process.env.SMTP_SERVICE === 'gmail' || (!host && user && user.includes('@gmail.com'))) {
+    return {
+      service: 'gmail',
+      auth: { user, pass }
+    };
+  }
+
+  return {
+    host: host || 'smtp.gmail.com',
+    port: port,
+    secure: port === 465 || process.env.SMTP_SECURE === 'true',
+    auth: { user, pass },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000
+  };
 }
 
-const mailTransport = hasSmtpConfig() ? nodemailer.createTransport(smtpConfig) : null;
+function getContactRecipient() {
+  return process.env.CONTACT_RECIPIENT_EMAIL || process.env.SMTP_USER || 'besufkadtekalign@gmail.com';
+}
+
+function getMailTransport() {
+  const config = getSmtpConfig();
+  if ((config.service || config.host) && config.auth && config.auth.user && config.auth.pass) {
+    return nodemailer.createTransport(config);
+  }
+  return null;
+}
 
 function escapeHtml(str) {
   return String(str)
@@ -195,24 +238,38 @@ app.post('/api/contact', async (req, res) => {
     return res.status(400).json({ error: 'Name, email, and message are required.' });
   }
 
-  if (!hasSmtpConfig() || !mailTransport) {
-    return res.status(500).json({ error: 'Email service not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS.' });
+  const transport = getMailTransport();
+  if (!transport) {
+    return res.status(500).json({ error: 'Email service not configured. Please set SMTP credentials in .env file.' });
   }
 
+  const smtpConfig = getSmtpConfig();
+  const recipient = getContactRecipient();
+
   try {
-    await mailTransport.sendMail({
-      from: process.env.SMTP_FROM || smtpConfig.auth.user,
-      to: contactRecipient,
-      subject: `Portfolio contact from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
-      html: `<p><strong>Name:</strong> ${escapeHtml(name)}</p><p><strong>Email:</strong> ${escapeHtml(email)}</p><p><strong>Message:</strong></p><p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`,
+    await transport.sendMail({
+      from: process.env.SMTP_FROM || `"${name} via Portfolio" <${smtpConfig.auth.user}>`,
+      to: recipient,
+      subject: `⚡ New Portfolio Message from ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; background: #0b111e; color: #f8fafc; border-radius: 10px; max-width: 600px; border: 1px solid #1e293b;">
+          <h2 style="color: #00F2FE; margin-top: 0; font-size: 20px;">🚀 New Portfolio Message</h2>
+          <p style="margin: 8px 0; font-size: 15px;"><strong>Sender Name:</strong> ${escapeHtml(name)}</p>
+          <p style="margin: 8px 0; font-size: 15px;"><strong>Sender Email:</strong> <a href="mailto:${escapeHtml(email)}" style="color: #00F2FE; text-decoration: underline;">${escapeHtml(email)}</a></p>
+          <hr style="border: 0; border-top: 1px solid #1e293b; margin: 18px 0;" />
+          <p style="margin: 8px 0 6px 0; font-size: 14px; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;"><strong>Message Content:</strong></p>
+          <div style="background: #141f33; padding: 16px; border-radius: 8px; border-left: 3px solid #00F2FE; white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #e2e8f0;">${escapeHtml(message)}</div>
+          <p style="margin-top: 22px; font-size: 13px; color: #64748b;">Hit <strong>Reply</strong> to directly message back to ${escapeHtml(name)} (${escapeHtml(email)}).</p>
+        </div>
+      `,
       replyTo: email
     });
 
-    res.json({ success: true, message: 'Your message has been sent successfully.' });
+    res.json({ success: true, message: 'Your message has been sent successfully! Besufkad will receive it directly.' });
   } catch (err) {
     console.error('Contact form send error:', err);
-    res.status(500).json({ error: 'Unable to send message. Please try again later.' });
+    res.status(500).json({ error: `Unable to send message: ${err.message}` });
   }
 });
 
@@ -306,6 +363,181 @@ app.post('/api/change-password', (req, res) => {
     }
     res.json({ success: true, message: 'Admin password updated successfully.' });
   });
+});
+
+// ---------- Real AI Integration (Google Gemini / OpenAI / Groq) ----------
+const aiConfigPath = path.join(__dirname, 'ai-config.json');
+
+function getAiConfig() {
+  try {
+    if (fs.existsSync(aiConfigPath)) {
+      return JSON.parse(fs.readFileSync(aiConfigPath, 'utf8'));
+    }
+  } catch (err) {}
+  return {
+    provider: process.env.AI_PROVIDER || 'gemini',
+    apiKey: process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || '',
+    model: process.env.AI_MODEL || 'gemini-1.5-flash'
+  };
+}
+
+app.get('/api/ai/config', (req, res) => {
+  const config = getAiConfig();
+  res.json({
+    provider: config.provider || 'gemini',
+    model: config.model || 'gemini-1.5-flash',
+    hasKey: Boolean(config.apiKey && config.apiKey.length > 5)
+  });
+});
+
+app.post('/api/ai/config', express.json(), (req, res) => {
+  const { password, provider, apiKey, model } = req.body;
+  if (!isAdminPasswordValid(password)) {
+    return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
+  }
+
+  const newConfig = {
+    provider: provider || 'gemini',
+    apiKey: apiKey ? String(apiKey).trim() : '',
+    model: model || 'gemini-1.5-flash'
+  };
+
+  try {
+    fs.writeFileSync(aiConfigPath, JSON.stringify(newConfig, null, 2), 'utf8');
+    res.json({ success: true, message: 'AI configuration updated successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save AI configuration.' });
+  }
+});
+
+app.post('/api/ai/chat', express.json(), async (req, res) => {
+  const { message, conversationHistory } = req.body;
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Message is required.' });
+  }
+
+  const aiConfig = getAiConfig();
+  const apiKey = aiConfig.apiKey;
+
+  // Retrieve latest CV data to inject fresh context
+  let cvData = null;
+  try {
+    const dbResult = await pool.query('SELECT data FROM cv WHERE id = 1');
+    if (dbResult.rows.length > 0 && dbResult.rows[0].data) {
+      cvData = dbResult.rows[0].data;
+    }
+  } catch (e) {}
+
+  if (!cvData) {
+    try {
+      const cvPath = path.join(__dirname, 'cv.json');
+      if (fs.existsSync(cvPath)) {
+        cvData = JSON.parse(fs.readFileSync(cvPath, 'utf8'));
+      }
+    } catch (fsErr) {}
+  }
+  if (!cvData) cvData = {};
+
+  const systemContext = `You are the official "Portfolio AI Guide" and personal AI ambassador for Besufkad Tekalign's Software Engineering Portfolio.
+You speak in a warm, knowledgeable, articulate, and friendly tone.
+
+BESUFKAD'S VERIFIED PORTFOLIO DATA:
+- Full Name: ${cvData.name || 'Besufkad Tekalign'}
+- Title & Role: ${cvData.headline || 'Full-Stack Developer | Software Engineer | AI & Cyber Enthusiast'}
+- Summary: ${cvData.summary || 'Developer building performant web applications and software solutions with modern full-stack tools.'}
+- Location: Addis Ababa, Ethiopia
+- Education: ${Array.isArray(cvData.education) ? cvData.education.map(e => `${e.degree} at ${e.institution} (${e.years || ''})`).join('; ') : 'Computer Science & Software Engineering at Addis Ababa University'}
+- Technical Arsenal: ${Array.isArray(cvData.skills) ? cvData.skills.join(', ') : 'JavaScript, TypeScript, React.js, Node.js, Python, PostgreSQL, MongoDB, Docker, Git, REST APIs, Cybersecurity, Three.js'}
+- Coding Streak & Activity: 84-Day continuous daily coding streak, 1,240+ GitHub commits, 98.5% consistency.
+- Professional Experience:
+${Array.isArray(cvData.experience) ? cvData.experience.map(e => `  * ${e.title} (${e.role || ''}, ${e.year || ''}): ${e.description}`).join('\n') : '  * INSA: Software Development Trainee\n  * Simien Mountains Plastic Recycling Initiative: Technical Lead (with ASU)'}
+- Projects:
+${Array.isArray(cvData.projects) ? cvData.projects.map(p => `  * ${p.name}: ${p.description}`).join('\n') : '  * Lufthansa Technik Innovaero 2026 Challenge\n  * The Udara Project'}
+- Direct Contact: Email: besufkadtekalign@gamil.com | GitHub: https://github.com/bes-g | LinkedIn: https://www.linkedin.com/in/besufkad-tekalign
+- Availability: Open for Full-Time Software Engineering roles, Frontend/Backend/Full-Stack contracts, remote opportunities, and collaborative builds.
+
+GUIDELINES:
+1. You are a real, helpful, brilliant AI agent.
+2. If asked about Besufkad or his portfolio, answer with complete accuracy using the data above.
+3. If asked ANY general programming, math, science, philosophy, trivia, advice, code generation, or conversational question, answer thoroughly and clearly like an expert AI.
+4. Use neat Markdown formatting, emojis, bold key points, and code blocks where applicable.`;
+
+  // If no external key is configured, tell client to use smart local intelligence
+  if (!apiKey) {
+    return res.json({ fallback: true });
+  }
+
+  try {
+    if (aiConfig.provider === 'gemini' || !aiConfig.provider) {
+      const modelName = aiConfig.model || 'gemini-1.5-flash';
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+      const contents = [
+        {
+          role: 'user',
+          parts: [{ text: `${systemContext}\n\nUser Question: ${message}` }]
+        }
+      ];
+
+      const response = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 800
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+        const replyText = data.candidates[0].content.parts[0].text;
+        return res.json({ success: true, reply: replyText, provider: 'gemini' });
+      } else {
+        console.warn('Gemini API response error:', data);
+        return res.json({ fallback: true, error: data.error?.message || 'Gemini error' });
+      }
+    } else if (aiConfig.provider === 'openai' || aiConfig.provider === 'groq') {
+      const endpoint = aiConfig.provider === 'groq'
+        ? 'https://api.groq.com/openai/v1/chat/completions'
+        : 'https://api.openai.com/v1/chat/completions';
+      const modelName = aiConfig.model || (aiConfig.provider === 'groq' ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini');
+
+      const messages = [
+        { role: 'system', content: systemContext },
+        ...(Array.isArray(conversationHistory) ? conversationHistory.slice(-6) : []),
+        { role: 'user', content: message }
+      ];
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages,
+          temperature: 0.7
+        })
+      });
+
+      const data = await response.json();
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        return res.json({ success: true, reply: data.choices[0].message.content, provider: aiConfig.provider });
+      } else {
+        console.warn('OpenAI/Groq error:', data);
+        return res.json({ fallback: true, error: data.error?.message || 'LLM error' });
+      }
+    }
+
+    return res.json({ fallback: true });
+  } catch (err) {
+    console.error('AI chat endpoint error:', err.message);
+    return res.json({ fallback: true });
+  }
 });
 
 function startServer(port, retryCount = 0) {
