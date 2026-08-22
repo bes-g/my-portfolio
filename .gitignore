@@ -4,8 +4,11 @@ node_modules/
 # Environment Variables & Secrets
 .env
 .env.*
+*.env
 admin-password.txt
+**/admin-password.txt
 n-password.txt
+**/n-password.txt
 
 # Logs
 *.log

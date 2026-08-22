@@ -2,10 +2,11 @@
   "name": "insa-portfolio-backend",
   "version": "1.0.0",
   "description": "Portfolio backend for Besufkad Tekalign to manage CV content.",
-  "main": "server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "migrate": "node backend/migrate-cv-json-to-db.js"
   },
   "dependencies": {
     "express": "^4.18.4",

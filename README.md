@@ -32,16 +32,26 @@ A modern personal portfolio and interactive resume management system featuring a
 ## Project Structure
 
 ```text
-├── index.html               # Main portfolio homepage
-├── admin.html               # CV Admin editor panel
-├── admin-login.html         # Admin authentication screen
-├── script.js                # Frontend portfolio & Three.js client logic
-├── admin.js                 # Admin panel client logic
-├── style.css                # Global theme & styles
-├── server.js                # Express server & REST API
-├── cv.json                  # CV data store & fallback
-├── migrate-cv-json-to-db.js # Initial migration script for Postgres
-├── package.json             # Node dependencies and scripts
+my-portfolio/
+├── frontend/
+│   ├── index.html           # Main portfolio homepage
+│   ├── admin.html           # CV Admin editor panel
+│   ├── admin-login.html     # Admin authentication screen
+│   ├── script.js            # Frontend portfolio & Three.js client logic
+│   ├── admin.js             # Admin panel client logic
+│   ├── style.css            # Global theme & styles
+│   ├── profile.jpg          # Profile photo
+│   └── resume.pdf           # Downloadable CV
+├── backend/
+│   ├── server.js            # Express server & REST API
+│   ├── cv.json              # CV data store & fallback
+│   ├── cv_backup.json       # CV data backup
+│   ├── migrate-cv-json-to-db.js # Migration script for Postgres
+│   ├── admin-password.txt   # Local admin password (git-ignored)
+│   └── backend-instructions.txt
+├── package.json             # Root npm configuration & scripts
+├── run-server.bat           # Windows 1-click startup script
+├── README.md                # Project documentation
 └── .gitignore               # Ignored files (node_modules, .env, secrets)
 ```
 
@@ -51,7 +61,7 @@ A modern personal portfolio and interactive resume management system featuring a
 
 ### 1. Prerequisites
 - **Node.js** (v16 or higher)
-- **PostgreSQL** (Optional, falls back to `cv.json` if not configured)
+- **PostgreSQL** (Optional, falls back to `backend/cv.json` if not configured)
 
 ### 2. Install Dependencies
 ```bash
@@ -73,12 +83,16 @@ ADMIN_PASSWORD=your_admin_password
 ### 4. Migrate Data to Database (Optional)
 If using PostgreSQL, initialize the table and populate it from `cv.json`:
 ```bash
-node migrate-cv-json-to-db.js
+npm run migrate
+```
+or
+```bash
+node backend/migrate-cv-json-to-db.js
 ```
 
 ### 5. Start the Server
 ```bash
-node server.js
+npm start
 ```
 or on Windows:
 ```cmd

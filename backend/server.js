@@ -85,10 +85,12 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-// ---------- PDF upload: always saved as resume.pdf (no apostrophes/spaces to avoid mismatches) ----------
+const frontendDir = path.join(__dirname, '../frontend');
+
+// ---------- PDF upload: always saved to frontend/resume.pdf ----------
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, __dirname),
+    destination: (req, file, cb) => cb(null, frontendDir),
     filename: (req, file, cb) => cb(null, 'resume.pdf')
   }),
   fileFilter: (req, file, cb) => {
@@ -99,10 +101,10 @@ const upload = multer({
   }
 });
 
-// ---------- Profile picture upload: always saved as profile.jpg ----------
+// ---------- Profile picture upload: always saved to frontend/profile.jpg ----------
 const imageUpload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, __dirname),
+    destination: (req, file, cb) => cb(null, frontendDir),
     filename: (req, file, cb) => cb(null, 'profile.jpg')
   }),
   fileFilter: (req, file, cb) => {
@@ -115,7 +117,7 @@ const imageUpload = multer({
 });
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '/')));
+app.use(express.static(frontendDir));
 
 // ---------- CV routes (backed by Postgres) ----------
 
@@ -228,8 +230,8 @@ app.post('/api/upload-pdf', upload.single('cvPdf'), (req, res) => {
 });
 
 app.get('/api/uploads/status', (req, res) => {
-  const profilePath = path.join(__dirname, 'profile.jpg');
-  const resumePath = path.join(__dirname, 'resume.pdf');
+  const profilePath = path.join(frontendDir, 'profile.jpg');
+  const resumePath = path.join(frontendDir, 'resume.pdf');
   res.json({
     profileUploaded: fs.existsSync(profilePath),
     cvUploaded: fs.existsSync(resumePath)
@@ -255,7 +257,7 @@ app.delete('/api/upload-photo', express.json(), (req, res) => {
     return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
   }
 
-  const profilePath = path.join(__dirname, 'profile.jpg');
+  const profilePath = path.join(frontendDir, 'profile.jpg');
   if (!fs.existsSync(profilePath)) {
     return res.json({ success: true, message: 'Profile photo already removed.' });
   }
@@ -274,7 +276,7 @@ app.delete('/api/upload-pdf', express.json(), (req, res) => {
     return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
   }
 
-  const resumePath = path.join(__dirname, 'resume.pdf');
+  const resumePath = path.join(frontendDir, 'resume.pdf');
   if (!fs.existsSync(resumePath)) {
     return res.json({ success: true, message: 'CV already removed.' });
   }
