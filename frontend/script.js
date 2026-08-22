@@ -608,18 +608,18 @@
         if (status.cvUploaded) {
           cvDownloadLink.href = `resume.pdf?v=${Date.now()}`;
           cvDownloadLink.classList.remove('disabled');
-          cvDownloadLink.textContent = '📄 Besufkad\'s CV.pdf';
+          cvDownloadLink.innerHTML = '<span class="doc-icon">📄</span><span>Download CV.pdf</span>';
         } else {
           cvDownloadLink.removeAttribute('href');
           cvDownloadLink.classList.add('disabled');
-          cvDownloadLink.textContent = 'CV not uploaded yet';
+          cvDownloadLink.innerHTML = '<span class="doc-icon">📄</span><span>CV not uploaded yet</span>';
         }
       }
 
       if (profilePic) {
         if (status.profileUploaded) {
           profilePic.src = `profile.jpg?v=${Date.now()}`;
-          profilePic.alt = 'My profile picture';
+          profilePic.alt = 'Besufkad Tekalign profile photo';
           profilePic.classList.remove('missing');
         } else {
           profilePic.src = profilePlaceholder;
